@@ -14,9 +14,9 @@
 
 StealthComm consists of three main components:
 
-1. **Central Registry Server:** Maintains a list of active chat servers and provides server information to clients.
-2. **Chat Server:** Handles client connections, message broadcasting, and encryption.
-3. **Chat Client:** Connects to the chat server for secure messaging.
+1. **Central Registry Server:** Maintains a list of active chat servers and provides server information to clients.: MUST BE RUNNING FIRST
+2. **Chat Server:** Handles client connections, message broadcasting, and encryption. : MUST BE RUN SECOND
+3. **Chat Client:** Connects to the chat server for secure messaging. : 
 
 ## Installation
 
