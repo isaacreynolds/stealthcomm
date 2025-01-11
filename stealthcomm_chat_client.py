@@ -21,7 +21,7 @@ def load_or_generate_key():
 key = load_or_generate_key()
 cipher_suite = Fernet(key)
 
-# Receive messages from the server
+# Function to receive messages
 def receive_messages(sock, chat_display):
     while True:
         try:
@@ -38,7 +38,7 @@ def receive_messages(sock, chat_display):
             sock.close()
             break
 
-# Sends messages to the server
+# Function to send messages
 def send_messages(sock, message_entry, chat_display):
     message = message_entry.get()
     if message:

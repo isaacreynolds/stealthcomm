@@ -6,6 +6,7 @@ import os
 import json
 import tkinter as tk
 from tkinter import scrolledtext
+import requests
 
 clients = []
 
@@ -77,7 +78,7 @@ def remove(client_socket, chat_display):
             break
 
 # Kick a user from the chat
-def kick_user(username, chat_display):
+def kick_user(username, clients, chat_display):
     for client, user in clients:
         if user == username:
             remove(client, chat_display)
@@ -92,6 +93,46 @@ def kick_user(username, chat_display):
         chat_display.config(state=tk.DISABLED)
         chat_display.yview(tk.END)
 
+# Command handler for the host
+def handle_host_command(command, clients, chat_display):
+    parts = command.split()
+    if parts[0] == "//kick" and len(parts) == 2:
+        username = parts[1]
+        kick_user(username, clients, chat_display)
+    else:
+        chat_display.config(state=tk.NORMAL)
+        chat_display.insert(tk.END, "Invalid command.\n")
+        chat_display.config(state=tk.DISABLED)
+        chat_display.yview(tk.END)
+
+# Function to fetch location based on IP address
+def get_location(ip):
+    try:
+        response = requests.get(f"https://ipinfo.io/{ip}/json")
+        data = response.json()
+        city = data.get("city", "Unknown")
+        region = data.get("region", "Unknown")
+        country = data.get("country", "Unknown")
+        return f"{city}, {region}, {country}"
+    except Exception as e:
+        print(f"Error fetching location for IP {ip}: {e}")
+        return "Unknown, Unknown, Unknown"
+
+# Function to fetch and display user information
+def show_user_info():
+    user_info_window = tk.Toplevel()
+    user_info_window.title("Connected Users")
+
+    user_info_display = tk.Text(user_info_window, state=tk.DISABLED)
+    user_info_display.pack(padx=10, pady=10)
+
+    user_info_display.config(state=tk.NORMAL)
+    for client, username in clients:
+        ip = client.getpeername()[0]
+        location = get_location(ip)
+        user_info_display.insert(tk.END, f"Username: {username}, IP: {ip}, Location: {location}\n")
+    user_info_display.config(state=tk.DISABLED)
+
 # Register the server with the central registry
 def register_with_registry(ip, port):
     registry_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -105,6 +146,20 @@ def register_with_registry(ip, port):
     else:
         print("Failed to register with the central registry.")
 
+# Function to accept clients
+def accept_clients(server, chat_display):
+    while True:
+        client_socket, addr = server.accept()
+        print(f"Accepted connection from {addr}")
+        client_handler = threading.Thread(target=handle_client, args=(client_socket, chat_display))
+        client_handler.start()
+
+# Main server loop
+def main_server_loop(chat_display):
+    while True:
+        command = input("Enter command: ")
+        handle_host_command(command, clients, chat_display)
+
 # Main server mode function
 def server_mode():
     def send_messages():
@@ -112,7 +167,7 @@ def server_mode():
             message = input("Server: ")
             if message.startswith("//kick "):
                 username_to_kick = message.split(" ", 1)[1]
-                kick_user(username_to_kick)
+                kick_user(username_to_kick, clients, chat_display)
             else:
                 broadcast(f"Server: {message}", None)
 
@@ -144,15 +199,11 @@ def server_mode():
     send_button = tk.Button(root, text="Send", command=lambda: broadcast(f"Server: {message_entry.get()}", None, chat_display))
     send_button.pack(padx=10, pady=10)
 
-    # Start accepting incoming client connections
-    def accept_clients():
-        while True:
-            client_socket, addr = server.accept()
-            print(f"Accepted connection from {addr}")
-            client_handler = threading.Thread(target=handle_client, args=(client_socket, chat_display))
-            client_handler.start()
+    user_info_button = tk.Button(root, text="Show Users", command=show_user_info)
+    user_info_button.pack(padx=10, pady=10)
 
-    threading.Thread(target=accept_clients, daemon=True).start()
+    threading.Thread(target=accept_clients, args=(server, chat_display), daemon=True).start()
+    threading.Thread(target=main_server_loop, args=(chat_display,), daemon=True).start()
 
     root.mainloop()
 
