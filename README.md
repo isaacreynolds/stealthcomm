@@ -35,7 +35,7 @@
 - **Secure File Transfer**: Encrypted plaintext file sharing capability
 - **Temporary Sessions**: `//leavechat` command wipes session data
 - **User Management**: Server-side kick ability for server hosts & moderators
-## What's New in v2.0!!!!!
+## What's New in v2.0:
 - 🔒 **TLS 1.3 Encryption**: All traffic now SSL-encrypted
 - 🖥️ **Matrix-esqe UI**: Terminal-style chat interface
 - 📊 **Live Server Metrics**: See active users before joining
