@@ -68,7 +68,7 @@ Three core components:
    - TLS-secured server directory  
    - Validates server/client keys  
    - Tracks active users per server  
-   *Required Port: 5556*
+   *Required/Default Port: 5556*
 
 2. **Chat Server (Host)**  
    - TLS 1.3 + Fernet encrypted  
@@ -107,26 +107,29 @@ Three core components:
    
         Registry Certificate
 
-        ```openssl req -x509 -newkey rsa:4096 -keyout registry.key -out registry.crt -days 365 -nodes```
-
-         Server Certificate 
-        ```openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes```
+        ```bash
+        openssl req -x509 -newkey rsa:4096 -keyout registry.key -out registry.crt -days 365 -nodes
+        ```
+        Server Certificate
+        ```bash
+        openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
+        ```
    3.Distribute files and run components:
 
 
-### Start registry (terminal 1)
+### Start registry (terminal/machine 1)
 ```bash
 cd registry && python registry_server.py
 
 ```
 
-### Start chat server (terminal 2)
+### Start chat server (terminal/machine 2)
 ```bash
 cd server && python chat_server.py
 
 ```
 
-### Launch client & connect to servers (terminal 3)
+### Launch client & connect to servers (terminal/machine 3)
 ```bash
 cd client && python client.py
 ```
