@@ -1,1 +1,56 @@
-secret.key
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+venv/
+ENV/
+env/
+
+# Encryption & Certificates
+secret.key  # Critical - never commit!
+*.csr
+*.key
+*.crt  # Only include if using self-signed test certs
+server.crt
+registry.crt
+
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.sublime-workspace
+.settings/
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.venv
+pip-selfcheck.json
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Editor
+*.swp
+*.swo
+*~

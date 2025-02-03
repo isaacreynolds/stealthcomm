@@ -1,135 +1,162 @@
-# StealthComm
 
-**StealthComm** is a peer-to-peer (P2P) secure messaging application designed for privacy enthusiasts who value encrypted communication. Leveraging AES encryption (via the `cryptography` library) and a central server registry for managing active chat servers, StealthComm ensures secure, lightweight, and efficient communication.
+# StealthComm (v2.1) - 2/2/2025
 
+**StealthComm** is a secure, Matrix-inspired messaging system with end-to-end encryption and certificate-based authentication. Designed for privacy-conscious users, it combines TLS-secured connections with Fernet encryption for layered security.
+**Secure Matrix-Style Chat System with Cross-Network Support**
+## Currently working on:
+- granting users use of a 'dev' or 'debug' mode in case of issues
+- minor bug fixes, mainly on linux and OSX OSs
+## New in v2.1
+-  **LAN Communication**: Host/join servers across devices on the same network
+-  **Repetitive Server Discovery**: Automatic server list updates, as well as a button to refresh them
+-  **Network Security**: SSL-encrypted registry-server communication
+-  **IP Configuration**: Specify registry server IP at client launch
+-  **New Matrix-themed UI**: Changed colors, as well as font
+
+## Key Features
+- **Wireless/Wired Support**: Connect via WiFi or Ethernet cables
+- **Central Registry**: Manage servers across the network
+- **Firewall-Friendly**: Works behind most home/office firewalls
+- **Certificate-Based Trust**: Prevent unauthorized servers
+
+## Network Setup
+1. **Registry Server**  
+   Run on a machine visible to all users (static IP recommended, has issues connecting without.)
+   ```bash
+   python registry_server.py
 ## Features
 
-- **End-to-End Encryption:** Messages are encrypted using SHA256 (Fernet cipher) for confidentiality.
-- **Central Server Registry:** A  system to register and retrieve active chat servers.
-- **Peer-to-Peer Communication:** Clients connect directly to chat servers for real-time communication.
-- **User-Friendly Interface:** Simple GUI built using Tkinter for ease of use.
-- **Cross-Platform Compatibility:** Runs on Windows, macOS, and Linux.
-
+- **Military-Grade Encryption**: 
+  - Transport Layer: TLS 1.3 with ECDHE key exchange
+  - Message Layer: Fernet (AES-128-CBC + HMAC-SHA256) 
+- **Certificate Authentication**: X.509 certificates prevent MITM attacks
+- **Matrix-Style UI**: Green-on-black terminal aesthetic with modern font
+- **Server Browser**: Real-time server list with user counts and connection health
+- **Secure File Transfer**: Encrypted plaintext file sharing capability
+- **Temporary Sessions**: `//leavechat` command wipes session data
+- **User Management**: Server-side kick ability for server hosts & moderators
+## What's New in v2.0!!!!!
+- 🔒 **TLS 1.3 Encryption**: All traffic now SSL-encrypted
+- 🖥️ **Matrix-esqe UI**: Terminal-style chat interface
+- 📊 **Live Server Metrics**: See active users before joining
+- 🗝️ **Key-Based Access**: Servers require matching secret.key to be visible to users
+- 🪲 **Minor bug fixes**: when joining servers with users with a different key, client & server would crash and oftentimes self delete from users machines.
+## WARNINGS
+All users of legacy code are recommended to upgrade as soon as possible, as previous versions were highly vulnerable to MITMs and had the possibility of code injection remotely
 ## Architecture
+```.
+├── registry/
+│   ├── registry_server.py
+│   ├── secret.key  # Generated once
+│   ├── registry.crt
+│   └── registry.key
+├── server/
+│   ├── chat_server.py
+│   ├── secret.key  # Same as registry
+│   ├── server.crt
+│   ├── server.key
+│   └── registry.crt
+└── client/
+    ├── client.py
+    ├── secret.key  # Same as others
+    ├── server.crt
+    └── registry.crt
+```
+Three core components:
 
-StealthComm consists of three main components:
+1. **Registry Server (Authority)**  
+   - TLS-secured server directory  
+   - Validates server/client keys  
+   - Tracks active users per server  
+   *Required Port: 5556*
 
-1. **Central Registry Server:** Maintains a list of active chat servers and provides server information to clients.: MUST BE RUNNING FIRST
-2. **Chat Server:** Handles client connections, message broadcasting, and encryption. : MUST BE RUN SECOND
-3. **Chat Client:** Connects to the chat server for secure messaging. : 
+2. **Chat Server (Host)**  
+   - TLS 1.3 + Fernet encrypted  
+   - Broadcasts messages P2P-style  
+   - User count reporting to registry  
+   *Default Port: 5555*
+
+3. **Matrix Client (End User)**  
+   - Certificate-pinned connections  
+   - Message history encryption  
+   - Server health monitoring  
+   *Port: Dynamic*
 
 ## Installation
 
 ### Prerequisites
 
-- [Python 3.x](https://www.python.org/) installed
-- Required Python packages listed in `requirements.txt`
+- Python 3.10+
+- OpenSSL 3.0+
+- Required packages:
+  ```bash
+  cryptography >= 41.0.0
+  pyOpenSSL >= 23.2.0
+  requests >= 2.31.0
+  ```
 
-### Steps
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/isaacreynolds/StealthComm.git
-   cd StealthComm
-   ```
-
-2. Create a virtual environment and activate it:
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # On Windows use `venv\Scripts\activate`
-   ```
-
-3. Install required dependencies:
-
-   ```bash
+  ## Setup
+  ### Install Pre-Reqs
+  ```bash
    pip install -r requirements.txt
-   ```
+  ```
+  1. **Clone Repository**
+   ```git clone https://github.com/isaacreynolds/StealthComm.git```
 
-4. Start the central registry server (in a terminal):
+  2. **Generate Certificates**
+   
+        Registry Certificate
 
-   ```bash
-   python stealthcomm_central_registry.py
-   ```
+        ```openssl req -x509 -newkey rsa:4096 -keyout registry.key -out registry.crt -days 365 -nodes```
 
-5. Start a chat server (in another terminal):
+         Server Certificate 
+        ```openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes```
+   3.Distribute files and run components:
 
-   ```bash
-   python stealthcomm_chat_server.py
-   ```
 
-6. Launch the chat client (in a separate terminal):
+### Start registry (terminal 1)
+```bash
+cd registry && python registry_server.py
 
-   ```bash
-   python stealthcomm_chat_client.py
-   ```
+```
 
-## Usage
+### Start chat server (terminal 2)
+```bash
+cd server && python chat_server.py
 
-### Client Mode
+```
 
-1. Run the client application.
-2. Connect to an available chat server from the central registry.
-3. Begin secure communication.
+### Launch client & connect to servers (terminal 3)
+```bash
+cd client && python client.py
+```
 
-### Server Mode
+# Usage
+Client flow:
+1. Launch client - see server browser
 
-1. Run the server application.
-2. Accept client connections and monitor chat activity via the GUI.
-3. Broadcast messages and manage client connections.
+2. Select server with updating user count
 
-## Technical Details
+3. Enter username (not for registration, just a nickname in joined servers)
 
-- **Encryption:** Messages are encrypted using the AES-based Fernet cipher for secure communication.
-- **Central Registry:** Manages active server registrations and provides server details to clients.
-- **GUI:** Built using Tkinter for both server and client applications.
+4. Chat
 
-## Security Considerations
+5. Type ```//leavechat``` to return to server list (or simply close out of the client to close and disconnect)
 
-- Ensure that the `secret.key` file used for encryption is securely stored and not shared.
-- Regularly rotate encryption keys for enhanced security.
-- Use secure network configurations to protect against unauthorized access.
+# Host Controls
+| Commands | Description | 
+|---|---|
+| ```//kick <user>``` | Remove user from server |
+| ```//users``` | List connected users with IPs |
+| ```//broadcast``` | Send server-wide announcement | 
 
-## Contributing
+# Additional considerations
+- Ensure the registry server that will be connected to is whitelisted
+- all user  information including chat logs, user data, etc is wiped upon user leaving the server
+- The security key will only allow connections or viewing of servers that share the same key as the client.
+- If you want access to a server you must have the proper .key to do so
+- **DO NOT SHARE KEY TO USER(S) YOU DO NOT TRUST WITH YOUR COMPUTER AND ANY INFORMATION IT CONTAINS**
 
-We eagerly welcome contributions from the community! Follow these steps to contribute:
 
-1. Fork the repository.
-2. Create a new branch for your feature:
-
-   ```bash
-   git checkout -b feature-name
-   ```
-
-3. Commit your changes:
-
-   ```bash
-   git commit -m "Add new feature"
-   ```
-
-4. Push your branch:
-
-   ```bash
-   git push origin feature-name
-   ```
-
-5. Open a Pull Request.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## Acknowledgments
-
-- [cryptography](https://cryptography.io/) library for encryption utilities.
-- Community contributors for code improvements and feature suggestions.
-
-## Contact
-
-For issues, suggestions, or feedback, please open an issue on the [GitHub Issues](https://github.com/username/StealthComm/issues) page.
-
----
-
-Enjoy secure and private communication with **StealthComm**!
-
+# LICENSE 
+This program is under an MIT free-use license. You are free to modify and edit it as you see fit.
